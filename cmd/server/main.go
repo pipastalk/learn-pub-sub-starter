@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/pipastalk/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/pipastalk/learn-pub-sub-starter/internal/pubsub"
 	"github.com/pipastalk/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -26,10 +27,36 @@ func main() {
 		os.Exit(1)
 	}
 	defer ch.Close()
-	err = pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
-	if err != nil {
-		fmt.Printf("Failed to publish JSON: %s\n", err)
-		os.Exit(1)
+	gamelogic.PrintServerHelp()
+	for {
+		words := gamelogic.GetInput()
+		//region commands
+		switch words[0] {
+		case "pause":
+			fmt.Println("Chill dude, We're pausing the game")
+			err := pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
+			if err != nil {
+				fmt.Printf("Failed to publish JSON: %s\n", err)
+				os.Exit(1)
+			}
+		case "resume":
+			fmt.Println("Let's get back to it, resuming the game")
+			err := pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: false})
+			if err != nil {
+				fmt.Printf("Failed to publish JSON: %s\n", err)
+				os.Exit(1)
+			}
+		case "quit":
+			{
+				fmt.Println("We all have to go sometime, goodbye")
+				break
+			}
+		//endregion
+		default:
+			{
+				fmt.Println("You seem to be chatting shit, (command unknown)")
+			}
+		}
 	}
 
 	// wait for ctrl+c
