@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/signal"
 
 	"github.com/pipastalk/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/pipastalk/learn-pub-sub-starter/internal/pubsub"
@@ -38,9 +37,43 @@ func main() {
 		fmt.Printf("Failed to declare and bind queue: %s\n", err)
 		os.Exit(1)
 	}
-	// wait for ctrl+c
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
+	gameState := gamelogic.NewGameState(username)
+replLoop:
+	for {
+		words := gamelogic.GetInput()
+		//commands
+		switch words[0] {
+		case "spawn":
+			err := gameState.CommandSpawn(words)
+			if err != nil {
+				fmt.Printf("Error occurred while spawning: %s\n", err)
+			}
+
+		case "move":
+			mv, err := gameState.CommandMove(words)
+			if err != nil {
+				fmt.Printf("Error occurred while moving: %s\n", err)
+			}
+			unitsString := ""
+			if len(mv.Units) > 1 {
+				unitsString = fmt.Sprintf("%d units", len(mv.Units))
+			} else {
+				unitsString = fmt.Sprintf("%s", mv.Units[0].Rank)
+			}
+			fmt.Printf("Moving %s to %s...\n", unitsString, mv.ToLocation)
+		case "status":
+			gameState.CommandStatus()
+		case "help":
+			gamelogic.PrintClientHelp()
+		case "spam":
+			fmt.Println("Spamming not allowed yet!")
+		case "quit":
+			gamelogic.PrintQuit()
+			break replLoop
+		default:
+			fmt.Printf("That random collection of symbols is noncesense, (Unknown command): %s\n", words[0])
+
+		}
+	}
 	fmt.Printf("Client %s has been terminated\n", username)
 }
