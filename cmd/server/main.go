@@ -27,6 +27,18 @@ func main() {
 		os.Exit(1)
 	}
 	defer ch.Close()
+	_, _, err = pubsub.DeclareAndBind(
+		connection,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug,
+		fmt.Sprintf("%s.*", routing.GameLogSlug),
+		pubsub.SimpleQueueType("durable"),
+	)
+	if err != nil {
+		fmt.Printf("Failed to declare and bind queue: %s\n", err)
+		os.Exit(1)
+	}
+
 	gamelogic.PrintServerHelp()
 	for {
 		words := gamelogic.GetInput()
