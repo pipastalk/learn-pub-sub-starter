@@ -26,7 +26,14 @@ func main() {
 		fmt.Printf("Unable to get client username: %s\n", err)
 		os.Exit(1)
 	}
+	ch, err := connection.Channel()
+	if err != nil {
+		fmt.Printf("Failed to create channel: %s\n", err)
+		os.Exit(1)
+	}
+	defer ch.Close()
 	gameState := gamelogic.NewGameState(username)
+	//Pause Sub
 	err = pubsub.SubscribeJSON(
 		connection,
 		routing.ExchangePerilDirect,
@@ -39,7 +46,15 @@ func main() {
 		fmt.Printf("Failed to subscribe to pause messages: %s\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Subscribed to pause messages for player %s\n", username)
+	//Army Move Subs
+	err = pubsub.SubscribeJSON(
+		connection,
+		routing.ExchangePerilTopic,
+		fmt.Sprintf("%s.%s", routing.ArmyMovesPrefix, username),
+		fmt.Sprintf("%s.*", routing.ArmyMovesPrefix),
+		pubsub.SimpleQueueType("transient"),
+		handlerMove(gameState),
+	)
 
 replLoop:
 	for {
@@ -66,6 +81,17 @@ replLoop:
 				unitsString = fmt.Sprintf("%s", mv.Units[0].Rank)
 			}
 			fmt.Printf("Moving %s to %s...\n", unitsString, mv.ToLocation)
+			err = pubsub.PublishJSON(
+				ch,
+				routing.ExchangePerilTopic,
+				fmt.Sprintf("%s.%s", routing.ArmyMovesPrefix, username),
+				mv,
+			)
+			if err != nil {
+				fmt.Printf("Failed to declare and bind user queue: %s\n", err)
+				os.Exit(1)
+			}
+			fmt.Printf("Published move to %s", routing.ExchangePerilTopic)
 		case "status":
 			gameState.CommandStatus()
 		case "help":
