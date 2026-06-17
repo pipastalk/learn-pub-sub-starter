@@ -59,6 +59,10 @@ func main() {
 replLoop:
 	for {
 		words := gamelogic.GetInput()
+		if len(words) == 0 {
+			fmt.Println("Why so quiet, say something!")
+			continue
+		}
 		//commands
 		switch words[0] {
 		case "spawn":

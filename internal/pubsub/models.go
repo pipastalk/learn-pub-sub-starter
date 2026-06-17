@@ -3,6 +3,7 @@ package pubsub
 import (
 	"errors"
 
+	"github.com/pipastalk/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -22,19 +23,19 @@ type queueParams struct {
 }
 
 var queueTypes = map[SimpleQueueType]queueParams{
-	DurableQueue: queueParams{
+	DurableQueue: {
 		durable:    true,
 		autoDelete: false,
 		exclusive:  false,
 		noWait:     false,
-		args:       nil,
+		args:       amqp.Table{"x-dead-letter-exchange": routing.DeadLetterExchange},
 	},
-	TransientQueue: queueParams{
+	TransientQueue: {
 		durable:    false,
 		autoDelete: true,
 		exclusive:  true,
 		noWait:     false,
-		args:       nil,
+		args:       amqp.Table{"x-dead-letter-exchange": routing.DeadLetterExchange},
 	},
 }
 
@@ -45,3 +46,12 @@ func (s SimpleQueueType) queueParams() (queueParams, error) {
 	}
 	return params, nil
 }
+
+type AckType int
+
+const (
+	Ack AckType = iota
+	NackRequeue
+	NackDiscard
+	Ignore
+)

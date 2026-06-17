@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"encoding/json"
+	"fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -12,7 +13,7 @@ func SubscribeJSON[T any](
 	queueName,
 	key string,
 	queueType SimpleQueueType, // an enum to represent "durable" or "transient"
-	handler func(T),
+	handler func(T) AckType,
 ) error {
 	ch, _, err := DeclareAndBind(conn, exchange, queueName, key, queueType)
 	if err != nil {
@@ -34,8 +35,20 @@ func SubscribeJSON[T any](
 		for msg := range messages {
 			var payload T
 			err = json.Unmarshal(msg.Body, &payload)
-			handler(payload)
-			msg.Ack(false)
+			switch handler(payload) {
+			case Ack:
+				fmt.Println("Acknowledged")
+				msg.Ack(false)
+			case NackRequeue:
+				fmt.Println("Requeued")
+				msg.Nack(false, true) // requeue the message
+			case NackDiscard:
+				fmt.Println("Discarded")
+				msg.Nack(false, false) // discard the message
+			case Ignore:
+				// Do nothing, message will remain unacknowledged
+			}
+			// If ack is Ignore, do nothing (message will remain unacknowledged)
 		}
 	}()
 	return nil
