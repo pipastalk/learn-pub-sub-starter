@@ -3,6 +3,7 @@ package pubsub
 import (
 	"fmt"
 
+	"github.com/pipastalk/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -27,7 +28,7 @@ func DeclareAndBind(
 		qParams.autoDelete,
 		qParams.exclusive,
 		qParams.noWait,
-		qParams.args,
+		amqp.Table{"x-dead-letter-exchange": routing.DeadLetterExchange},
 	)
 	if err != nil {
 		return nil, amqp.Queue{}, fmt.Errorf("failed to declare queue: %w", err)

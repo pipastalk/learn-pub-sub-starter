@@ -55,6 +55,19 @@ func main() {
 		pubsub.SimpleQueueType("transient"),
 		handlerMove(gameState, ch),
 	)
+	//Wars Subs
+	err = pubsub.SubscribeJSON(
+		connection,
+		routing.ExchangePerilTopic,
+		fmt.Sprintf("%s", routing.WarRecognitionsPrefix),
+		fmt.Sprintf("%s.*", routing.WarRecognitionsPrefix),
+		pubsub.SimpleQueueType("durable"),
+		handlerWar(gameState, ch),
+	)
+	if err != nil {
+		fmt.Printf("Failed to subscribe to war messages: %s\n", err)
+		os.Exit(1)
+	}
 
 replLoop:
 	for {

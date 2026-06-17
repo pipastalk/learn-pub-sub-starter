@@ -2,9 +2,6 @@ package pubsub
 
 import (
 	"errors"
-
-	"github.com/pipastalk/learn-pub-sub-starter/internal/routing"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type SimpleQueueType string
@@ -14,12 +11,12 @@ const (
 	TransientQueue SimpleQueueType = "transient"
 )
 
+// when using queueParams be sure to add args manually after
 type queueParams struct {
 	durable    bool
 	autoDelete bool
 	exclusive  bool
 	noWait     bool
-	args       amqp.Table
 }
 
 var queueTypes = map[SimpleQueueType]queueParams{
@@ -28,14 +25,12 @@ var queueTypes = map[SimpleQueueType]queueParams{
 		autoDelete: false,
 		exclusive:  false,
 		noWait:     false,
-		args:       amqp.Table{"x-dead-letter-exchange": routing.DeadLetterExchange},
 	},
 	TransientQueue: {
 		durable:    false,
 		autoDelete: true,
 		exclusive:  true,
 		noWait:     false,
-		args:       amqp.Table{"x-dead-letter-exchange": routing.DeadLetterExchange},
 	},
 }
 
