@@ -53,7 +53,7 @@ func main() {
 		fmt.Sprintf("%s.%s", routing.ArmyMovesPrefix, username),
 		fmt.Sprintf("%s.*", routing.ArmyMovesPrefix),
 		pubsub.SimpleQueueType("transient"),
-		handlerMove(gameState),
+		handlerMove(gameState, ch),
 	)
 
 replLoop:
