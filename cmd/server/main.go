@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/signal"
 
 	"github.com/pipastalk/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/pipastalk/learn-pub-sub-starter/internal/pubsub"
@@ -38,7 +37,7 @@ func main() {
 		fmt.Printf("Failed to declare and bind queue: %s\n", err)
 		os.Exit(1)
 	}
-	err = pubsub.Subscribe[routing.GameLog](
+	err = pubsub.Subscribe(
 		connection,
 		routing.ExchangePerilTopic,
 		routing.GameLogSlug,
@@ -79,11 +78,5 @@ func main() {
 			}
 		}
 	}
-
-	// wait for ctrl+c
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
-	fmt.Println("Server has been terminated")
 
 }
