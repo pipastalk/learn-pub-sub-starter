@@ -5,15 +5,16 @@ import (
 	"encoding/gob"
 )
 
-func HelperUnmarshallerGob() func([]byte) (any, error) {
-	return func(body []byte) (any, error) {
+func HelperUnmarshallerGob[T any]() func([]byte) (T, error) {
+	return func(body []byte) (T, error) {
 		var buf bytes.Buffer
 		buf.Write(body)
 		dec := gob.NewDecoder(&buf)
-		var payload any
+		var payload T
 		err := dec.Decode(&payload)
 		if err != nil {
-			return nil, err
+			var zero T
+			return zero, err
 		}
 		return payload, nil
 	}

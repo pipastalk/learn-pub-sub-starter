@@ -1,40 +1,10 @@
 package pubsub
 
 import (
-	"bytes"
-	"encoding/gob"
-	"encoding/json"
 	"fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
-
-func HelperUnmarshallerJSON() func(body []byte) (any, error) {
-	return func(body []byte) (any, error) {
-		var payload any
-		err := json.Unmarshal(body, &payload)
-		if err != nil {
-			var zero any
-			return zero, err
-		}
-		return payload, nil
-	}
-}
-
-func HelperUnmarshallerGob() func([]byte) (any, error) {
-	return func(body []byte) (any, error) {
-		var buf bytes.Buffer
-		buf.Write(body)
-		dec := gob.NewDecoder(&buf)
-		var payload any
-		err := dec.Decode(&payload)
-		if err != nil {
-			var zero any
-			return zero, err
-		}
-		return payload, nil
-	}
-}
 
 func Subscribe[T any](
 	conn *amqp.Connection,
