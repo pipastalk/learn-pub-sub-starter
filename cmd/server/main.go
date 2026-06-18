@@ -38,12 +38,14 @@ func main() {
 		fmt.Printf("Failed to declare and bind queue: %s\n", err)
 		os.Exit(1)
 	}
-
-	gamelogic.PrintServerHelp()
-	for {
-		words := gamelogic.GetInput()
-		//region commands
-		switch words[0] {
+	err = pubsub.Subscribe(
+		ch,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug,
+		fmt.Sprintf("%s.#", routing.GameLogSlug),
+		pubsub.SimpleQueueType("durable"),
+		HandlerWriteGameLog(),
+		pubsub.HelperUnmarshallerGob[routing.GameLog](),
 		case "pause":
 			fmt.Println("Chill dude, We're pausing the game")
 			err := pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
