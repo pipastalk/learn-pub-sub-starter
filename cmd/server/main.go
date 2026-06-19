@@ -50,6 +50,10 @@ func main() {
 	gamelogic.PrintServerHelp()
 	for {
 		words := gamelogic.GetInput()
+		if len(words) == 0 {
+			fmt.Println("Why so quiet, say something!")
+			continue
+		}
 		//region commands
 		switch words[0] {
 		case "pause":

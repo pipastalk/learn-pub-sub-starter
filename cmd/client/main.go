@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/pipastalk/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/pipastalk/learn-pub-sub-starter/internal/pubsub"
@@ -114,7 +115,20 @@ replLoop:
 		case "help":
 			gamelogic.PrintClientHelp()
 		case "spam":
-			fmt.Println("Spamming not allowed yet!")
+			fmt.Println("It's rude to spam!\n What I said it's rude not that I'm not going to do it")
+			spamCount, err := strconv.Atoi(words[1])
+			if err != nil {
+				fmt.Printf("Bruh %s is not a number!, spam <count>\n", words[1])
+			}
+			for range spamCount {
+				_ = pubsub.PublishGob(
+					ch,
+					routing.ExchangePerilTopic,
+					fmt.Sprintf("%s.%s", routing.GameLogSlug, username),
+					gamelogic.GetMaliciousLog(),
+				)
+
+			}
 		case "quit":
 			gamelogic.PrintQuit()
 			break replLoop
